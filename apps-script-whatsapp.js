@@ -92,17 +92,21 @@ function doGet(e) {
 
 function doPost(e) {
   const lock = LockService.getScriptLock();
+  let lockAcquired = false;
 
   try {
     lock.waitLock(30000);
+    lockAcquired = true;
 
     const sheetMov = obtenerHojaSegura('MOVIMIENTOS');
     let datos;
 
     try {
-      datos = JSON.parse(e.postData.contents);
+      datos = JSON.parse(e && e.postData && e.postData.contents || '{}');
     } catch (errorJson) {
-      datos = JSON.parse(e.parameter.datosJson || e.postData.contents);
+      const datosJson = e && e.parameter && e.parameter.datosJson;
+      if (!datosJson) throw errorJson;
+      datos = JSON.parse(datosJson);
     }
 
     const fechaHora = Utilities.formatDate(
@@ -115,9 +119,23 @@ function doPost(e) {
     const sector = (datos.sector || '').toString().trim().toUpperCase();
     const anfitrion = (datos.anfitrion || '').toString().trim().toUpperCase();
     const observaciones = (datos.observaciones || '').toString().trim().toUpperCase();
-    const modoTrabajo = datos.modo || (datos.modoEvento ? 'Modo Evento' : 'Modo Normal');
-    const bultos = (datos.bultos || '-').toString().trim();
+    const modoMercadoLibre = datos.modoMercadoLibre === true
+      || String(datos.modoMercadoLibre).toLowerCase() === 'true'
+      || String(datos.modo || '').toLowerCase().includes('mercado');
+    const modoEvento = datos.modoEvento === true
+      || String(datos.modoEvento).toLowerCase() === 'true';
+    const modoTrabajo = modoMercadoLibre
+      ? 'Modo Mercado Libre'
+      : (datos.modo || (modoEvento ? 'Modo Evento' : 'Modo Normal'));
+    const bultos = modoMercadoLibre
+      ? (datos.bultos || '1').toString().trim()
+      : '-';
     const codigoFarmacia = (datos.codigoFarmacia || '').toString().trim();
+
+    if (sector === 'MOSTRADOR' && !codigoFarmacia) {
+      throw new Error('El código de farmacia es obligatorio para ingresos por Mostrador.');
+    }
+
     const siguienteFila = sheetMov.getLastRow() + 1;
 
     sheetMov.getRange(siguienteFila, 1, 1, 9).setValues([[
@@ -143,7 +161,7 @@ function doPost(e) {
       message: error.toString()
     });
   } finally {
-    lock.releaseLock();
+    if (lockAcquired) lock.releaseLock();
   }
 }
 
@@ -403,4 +421,32 @@ function obtenerEventosDelDia() {
     console.error('Error al consultar eventos: ' + error.toString());
     return [];
   }
+}
+
+function getSheet() {
+  return obtenerHojaSegura('MOVIMIENTOS');
+}
+
+function buildJsonOutput(payload) {
+  return responderJson(payload);
+}
+
+function normalizeRow(obj) {
+  return {
+    Timestamp: obj.Timestamp || obj.timestamp || obj['FECHA Y HORA'] || '',
+    'Datos Personales': obj['Datos Personales'] || obj['DATOS PERSONALES'] || obj.datosPersonales || '',
+    Empresa: obj.Empresa || obj.EMPRESA || obj['EMPRESA O FARMACIA'] || obj.empresa || '',
+    'Código de Farmacia': obj['Código de Farmacia'] || obj['CODIGO DE FARMACIA'] || obj.codigoFarmacia || '',
+    Sector: obj.Sector || obj.SECTOR || obj['SECTOR A VISITAR'] || obj.sector || '',
+    'Anfitrión': obj['Anfitrión'] || obj.ANFITRION || obj.anfitrion || '',
+    Observaciones: obj.Observaciones || obj.OBSERVACIONES || obj.observaciones || '',
+    Modo: obj.Modo || obj.MODO || obj['TIPO DE VISITA'] || obj['Modo Evento'] || '',
+    Bultos: obj.Bultos || obj.BULTOS || obj.bultos || '',
+    modoEvento: ['SI', 'TRUE'].includes(String(obj['Modo Evento'] || obj.modoEvento || '').toUpperCase())
+      || String(obj.Modo || obj.MODO || obj['TIPO DE VISITA'] || '').toUpperCase().includes('EVENTO')
+  };
+}
+
+function doOptions(e) {
+  return responderJson({ status: 'success' });
 }
