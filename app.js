@@ -3,10 +3,11 @@
 // =========================================================================
 const html5QrCode = new Html5Qrcode("reader");
 
-
-// Endpoint local para enviar/leer registros desde el servidor.
-const URL_API_GOOGLE = '/api/registro';
-const URL_API_VISITAS = '/api/visitas';
+const API_BASE_URL = window.location.hostname.endsWith('github.io')
+    ? 'https://visitas-qru-api.onrender.com'
+    : '';
+const URL_API_GOOGLE = `${API_BASE_URL}/api/registro`;
+const URL_API_VISITAS = `${API_BASE_URL}/api/visitas`;
 
 // Dejamos esta constante vieja acá arriba por si tu HTML o algún script la requiere, no molesta.
 const URL_API_SHEETDB = 'https://sheetdb.io/api/v1/no_se_usa_pero_queda_guardada';
@@ -245,7 +246,7 @@ async function actualizarSugerenciasDni() {
     dniSugerencias.hidden = false;
 
     try {
-        const response = await fetch(`/api/visitantes?dni=${encodeURIComponent(consulta)}`);
+        const response = await fetch(`${API_BASE_URL}/api/visitantes?dni=${encodeURIComponent(consulta)}`);
         const visitantes = await response.json();
         if (idConsulta !== consultaDniActual) return;
         if (!response.ok || !Array.isArray(visitantes)) {
