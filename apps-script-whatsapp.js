@@ -51,6 +51,37 @@ function obtenerFilasComoObjetos(nombreSolicitado) {
   });
 }
 
+function buscarVisitantesPorDni(dniBuscado) {
+  const dni = (dniBuscado || '').toString().replace(/\D/g, '');
+  if (dni.length < 3) return [];
+
+  const sheet = obtenerHojaSegura('MOVIMIENTOS');
+  const values = sheet.getDataRange().getDisplayValues();
+  if (values.length <= 1) return [];
+
+  const headers = values[0].map(header => header.toString().trim().toUpperCase());
+  const columnaDatosPersonales = headers.indexOf('DATOS PERSONALES');
+  if (columnaDatosPersonales === -1) {
+    throw new Error('No se encontró la columna DATOS PERSONALES en la pestaña MOVIMIENTOS.');
+  }
+
+  const visitantesPorDni = new Map();
+  values.slice(1).forEach(row => {
+    const datosPersonales = (row[columnaDatosPersonales] || '').toString().trim();
+    const coincidencia = datosPersonales.match(/\bDNI\s*[:#-]?\s*([\d.-]{6,14})/i);
+    if (!coincidencia) return;
+
+    const dniVisitante = coincidencia[1].replace(/\D/g, '');
+    if (dniVisitante.length < 6 || dniVisitante.length > 9 || !dniVisitante.includes(dni)) return;
+    visitantesPorDni.set(dniVisitante, {
+      dni: dniVisitante,
+      datosPersonales
+    });
+  });
+
+  return Array.from(visitantesPorDni.values());
+}
+
 function doGet(e) {
   try {
     const parametros = e && e.parameter ? e.parameter : {};
@@ -79,6 +110,10 @@ function doGet(e) {
       const sector = parametros.sector || '';
       const directorio = obtenerDirectorioCompleto();
       return responderJson(directorio[sector] || []);
+    }
+
+    if (parametros.tipo === 'visitantes_dni') {
+      return responderJson(buscarVisitantesPorDni(parametros.dni || ''));
     }
 
     return responderJson(obtenerFilasComoObjetos('MOVIMIENTOS'));
