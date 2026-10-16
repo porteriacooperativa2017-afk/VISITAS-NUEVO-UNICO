@@ -675,6 +675,306 @@ input:checked + .slider:before { transform: translateX(24px); }
     font-size: 14px;
 }
 
+:root {
+    color-scheme: dark;
+    --bg-main: #07111f;
+    --bg-card: #0d1b2d;
+    --text-title: #e8f3ff;
+    --text-body: #a9bfd4;
+    --accent-blue: #26c6f4;
+    --accent-success: #0e9f86;
+    --accent-main: #12304c;
+    --accent-registro: #12304c;
+    --border-color: #263d55;
+}
+
+body {
+    position: relative;
+    isolation: isolate;
+    background:
+        radial-gradient(ellipse at 14% 8%, rgba(20, 112, 170, 0.2), transparent 38%),
+        radial-gradient(ellipse at 88% 88%, rgba(20, 78, 132, 0.2), transparent 42%),
+        #07111f;
+    color: var(--text-title);
+}
+
+.app-container {
+    max-width: 1100px;
+    background: linear-gradient(155deg, rgba(15, 32, 51, 0.98), rgba(8, 21, 37, 0.99));
+    border: 1px solid #213a52;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45), 0 0 32px rgba(38, 198, 244, 0.06);
+}
+
+body .app-header,
+body.view-principal .app-header,
+body.view-registro .app-header,
+body.modo-mercadolibre .app-header {
+    background: linear-gradient(110deg, #10243a, #0c1b2d 70%, #102943);
+    color: var(--text-title);
+    border-bottom: 1px solid #24435e;
+}
+
+.logo-container h1 {
+    color: #f2f8ff;
+}
+
+.logo-container .subtitle {
+    color: #8faac2;
+}
+
+.event-switch-container {
+    background: rgba(17, 39, 61, 0.92);
+    border-color: #29445f;
+    box-shadow: inset 0 1px 8px rgba(0, 0, 0, 0.16);
+}
+
+.switch-label {
+    color: #c2d5e8;
+}
+
+.main-content {
+    background: transparent;
+}
+
+.scanner-input-container {
+    background: linear-gradient(135deg, #10263c, #0d1f33);
+    border: 1px dashed #31708f;
+    box-shadow: inset 0 0 24px rgba(38, 198, 244, 0.035);
+}
+
+.scanner-input-container label {
+    color: #55d5f5;
+}
+
+#escaneoRaw,
+.form-group input,
+.form-group select,
+.form-group textarea,
+.report-filters input,
+.report-filters select,
+.mail-destination input,
+.whatsapp-contact-panel input {
+    color-scheme: dark;
+    color: #e6f2ff;
+    background: #0a1727;
+    border-color: #2b455f;
+}
+
+#escaneoRaw::placeholder,
+.form-group input::placeholder,
+.form-group textarea::placeholder,
+.report-filters input::placeholder,
+.whatsapp-contact-panel input::placeholder {
+    color: #718aa3;
+}
+
+#escaneoRaw:focus,
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus,
+.report-filters input:focus,
+.report-filters select:focus,
+.whatsapp-contact-panel input:focus {
+    border-color: #36c9f2;
+    background: #0c1c2f;
+    box-shadow: 0 0 0 3px rgba(38, 198, 244, 0.14);
+}
+
+.form-group input[readonly] {
+    color: #bdd0e2;
+    background: #13263a;
+    border-color: #2a425b;
+}
+
+.form-group label,
+.filter-group label {
+    color: #b6cadc;
+}
+
+.dni-suggestions,
+.whatsapp-contact-suggestions {
+    background: #0b1929;
+    border-color: #2b455f;
+}
+
+.dni-suggestion-option {
+    color: #e1efff;
+    background: #0b1929;
+    border-color: #20374e;
+}
+
+.dni-suggestion-option:hover,
+.dni-suggestion-option:focus {
+    background: #15314a;
+}
+
+.dni-suggestion-empty {
+    color: #a9bfd4;
+}
+
+.whatsapp-contact-panel {
+    color: #d8f8eb;
+    background: linear-gradient(135deg, #0d2a2a, #10251f);
+    border-color: #23634f;
+}
+
+.whatsapp-contact-panel h3 {
+    color: #76e3b5;
+}
+
+.whatsapp-contact-panel p,
+.whatsapp-contact-panel label,
+.whatsapp-contact-selection {
+    color: #b4d7cb;
+}
+
+.form-actions {
+    gap: 14px;
+}
+
+.btn-submit,
+.btn-report-primary {
+    color: #041b24;
+    background: linear-gradient(110deg, #34d3ed, #22b8d6);
+    box-shadow: 0 8px 24px rgba(34, 184, 214, 0.16);
+}
+
+.btn-submit:hover,
+.btn-report-primary:hover {
+    color: #03151d;
+    background: linear-gradient(110deg, #67e5f5, #32cce6);
+    box-shadow: 0 10px 28px rgba(34, 184, 214, 0.25);
+}
+
+.btn-secondary,
+.btn-report-secondary {
+    color: #c9d9e9;
+    background: #1a3047;
+    border: 1px solid #304b66;
+}
+
+.btn-secondary:hover,
+.btn-report-secondary:hover {
+    color: #ffffff;
+    background: #24425e;
+}
+
+.form-processing {
+    background: #10253b;
+    border-color: #285678;
+}
+
+.form-processing-message {
+    color: #91e5fa;
+}
+
+.form-progress-track {
+    background: #1a3b57;
+}
+
+.form-progress-bar {
+    background: linear-gradient(90deg, #26c6f4, #55e0d0);
+}
+
+.form-processing-help {
+    color: #a9bfd4;
+}
+
+.view-switcher {
+    background: #0b1929;
+    border-bottom: 1px solid #1d354d;
+}
+
+.view-tab {
+    color: #a9bfd4;
+    background: #13263a;
+}
+
+.view-tab.active {
+    color: #061725;
+    background: #35c9ed;
+    box-shadow: 0 4px 16px rgba(53, 201, 237, 0.18);
+}
+
+.report-header h2 {
+    color: #e8f3ff;
+}
+
+.report-header p,
+.summary-card span {
+    color: #9db4ca;
+}
+
+.report-filters {
+    background: #0b1929;
+    border-color: #213a52;
+}
+
+.summary-card {
+    color: #e8f3ff;
+    background: linear-gradient(145deg, #132940, #0e1e31);
+    border-color: #29445e;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
+}
+
+.summary-card strong {
+    color: #61d8f3;
+}
+
+.mail-destination label,
+.result-counter {
+    color: #91dff4;
+}
+
+.table-wrap {
+    border-color: #29445e;
+}
+
+.visitas-table {
+    color: #dbe9f6;
+    background: #0b1929;
+}
+
+.visitas-table th,
+.visitas-table td {
+    border-bottom-color: #20374e;
+}
+
+.visitas-table th {
+    color: #a9c1d8;
+    background: #142a40;
+}
+
+.visitas-table tbody tr:nth-child(even) {
+    background: rgba(20, 42, 64, 0.42);
+}
+
+.empty-state {
+    color: #9db4ca;
+}
+
+#reader {
+    border-color: #2b566f;
+    background: #07111f;
+}
+
+.btn-qr {
+    color: #061725;
+    background: linear-gradient(110deg, #32c9ec, #239cc7);
+    box-shadow: 0 8px 24px rgba(38, 198, 244, 0.14);
+}
+
+@media print {
+    :root {
+        color-scheme: light;
+    }
+    .app-container,
+    .visitas-table {
+        color: #1a202c;
+        background: #ffffff;
+    }
+}
+
 @media (max-width: 900px) {
     .report-summary {
         grid-template-columns: repeat(2, minmax(0, 1fr));
