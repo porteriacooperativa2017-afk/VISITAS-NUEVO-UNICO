@@ -107,6 +107,8 @@ const anfitrionSelect = document.getElementById('anfitrion');
 const modoEventoCheck = document.getElementById('modoEvento');
 const modoMercadoLibreCheck = document.getElementById('modoMercadoLibre');
 const groupEmpresa = document.getElementById('groupEmpresa');
+const groupCantidadBultos = document.getElementById('groupCantidadBultos');
+const cantidadBultosInput = document.getElementById('cantidadBultos');
 const btnRegistrar = document.getElementById('btnRegistrar');
 const btnLimpiar = document.getElementById('btnLimpiar');
 const formProcessing = document.getElementById('formProcessing');
@@ -163,6 +165,9 @@ function actualizarCamposMostrador() {
     const mostrar = esMostrador();
     if (groupDniBusqueda) groupDniBusqueda.hidden = !mostrar;
     if (groupCodigoFarmacia) groupCodigoFarmacia.hidden = !mostrar;
+    const mostrarBultos = Boolean(modoMercadoLibreCheck?.checked);
+    if (groupCantidadBultos) groupCantidadBultos.hidden = !mostrarBultos;
+    if (!mostrarBultos && cantidadBultosInput) cantidadBultosInput.value = '';
     if (codigoFarmaciaInput) {
         codigoFarmaciaInput.required = mostrar;
         if (!mostrar) codigoFarmaciaInput.value = '';
@@ -332,15 +337,27 @@ if (btnAbrirWhatsApp) {
         if (!contactoWhatsappSeleccionado || !datosUltimoRegistroWhatsapp) return;
         const { nombre, telefono } = contactoWhatsappSeleccionado;
         const visita = datosUltimoRegistroWhatsapp;
-        const mensaje = [
-            '📢 *Aviso de Ingreso*',
-            '',
-            `Hola Sr/a *${nombre}*, le informamos que se registró una nueva visita en portería:`,
-            '',
-            `👤 *Visitante:* ${visita.datosPersonales}`,
-            `📍 *Sector:* ${visita.sector}`,
-            `📝 *Observaciones:* ${visita.observaciones || 'Ninguna'}`
-        ].join('\n');
+        const mensaje = visita.modoMercadoLibre
+            ? [
+                `📦 *Estimado/a:*`,
+                '',
+                `🔔 Tiene un envío de la empresa *${visita.empresa || 'MERCADO LIBRE'}* para ser retirado en la guardia.`,
+                '',
+                `📦 *Cantidad de bultos:* ${visita.bultos || 1}`,
+                '📍 *Lugar de retiro:* Guardia',
+                '',
+                '_Atentamente,_',
+                '_*Control de Accesos COFARMEN*_'
+            ].join('\n')
+            : [
+                '📢 *Aviso de Ingreso*',
+                '',
+                `Hola Sr/a *${nombre}*, le informamos que se registró una nueva visita en portería:`,
+                '',
+                `👤 *Visitante:* ${visita.datosPersonales}`,
+                `📍 *Sector:* ${visita.sector}`,
+                `📝 *Observaciones:* ${visita.observaciones || 'Ninguna'}`
+            ].join('\n');
         const url = `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`;
         window.open(url, '_blank', 'noopener,noreferrer');
     });
@@ -863,7 +880,9 @@ if (btnRegistrar) {
         const obsElement = document.getElementById('observaciones');
         const observacionesTexto = obsElement && obsElement.value ? obsElement.value.toUpperCase() : 'SIN OBSERVACIONES';
         const cantidadBultosInput = document.getElementById('cantidadBultos');
-        const cantidadBultos = cantidadBultosInput ? Number(cantidadBultosInput.value) || 0 : 0;
+        const cantidadBultos = modoMercadoLibreCheck.checked && cantidadBultosInput
+            ? Number(cantidadBultosInput.value) || 0
+            : 0;
         const anfitrionVal = anfitrionSelect.value ? anfitrionSelect.value.toUpperCase() : '';
         const pertenece = anfitrionVal === 'PERTENECIENTE';
         const codigoFarmacia = (codigoFarmaciaInput?.value || '').trim();
@@ -892,6 +911,7 @@ if (btnRegistrar) {
             "anfitrion": anfitrionVal,
             "observaciones": observacionesTexto,
             "modoEvento": modoEventoCheck.checked, // Envía true o false
+            "modoMercadoLibre": modoMercadoLibreCheck.checked,
             "bultos": cantidadBultos,
             "perteneciente": pertenece
         };
@@ -959,6 +979,7 @@ if (btnRegistrar) {
 
 document.addEventListener('DOMContentLoaded', () => {
     cargarSectores();
+    actualizarCamposMostrador();
     visitasRegistradas = [
         {
             id: 'demo-1',
