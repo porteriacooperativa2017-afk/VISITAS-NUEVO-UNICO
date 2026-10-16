@@ -149,7 +149,7 @@ function doPost(e) {
 
 function construirMensajeWhatsApp(datosPersonales, empresa, sector, anfitrion, observaciones, modo, bultos) {
   if (modo.toString().toLowerCase().includes('mercado')) {
-    return '📦 *Señor/a ' + anfitrion + ':*\n\n' +
+    return '📦 *Estimado/a:*\n\n' +
       '🔔 Tiene un envío de la empresa *' + (empresa || 'MERCADO LIBRE') + '* para ser retirado en la guardia.\n\n' +
       '📦 *Cantidad de bultos:* ' + (bultos || '1') + '\n' +
       '📍 *Lugar de retiro:* Guardia\n\n' +
