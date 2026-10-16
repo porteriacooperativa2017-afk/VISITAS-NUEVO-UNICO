@@ -223,50 +223,71 @@ function extraerDni(datosPersonales) {
     return coincidencia ? coincidencia[1] : '';
 }
 
-function actualizarSugerenciasDni() {
+let consultaDniActual = 0;
+
+async function actualizarSugerenciasDni() {
     if (!dniBusquedaInput || !dniSugerencias) return;
     const consulta = dniBusquedaInput.value.replace(/\D/g, '').slice(0, 9);
     dniBusquedaInput.value = consulta;
     datosPersonalesInput.value = '';
     dniSugerencias.replaceChildren();
+    const idConsulta = ++consultaDniActual;
 
     if (consulta.length < 3) {
         dniSugerencias.hidden = true;
         return;
     }
 
-    const coincidenciasPorDni = new Map();
-    visitasRegistradas.forEach((visita) => {
-        if (String(visita.id || '').startsWith('demo-')) return;
-        const dni = extraerDni(visita.datosPersonales);
-        if (dni.includes(consulta) && !coincidenciasPorDni.has(dni)) {
-            coincidenciasPorDni.set(dni, visita);
-        }
-    });
-
-    if (!coincidenciasPorDni.size) {
-        const mensaje = document.createElement('div');
-        mensaje.className = 'dni-suggestion-empty';
-        mensaje.textContent = 'No hay visitantes registrados con ese DNI.';
-        dniSugerencias.appendChild(mensaje);
-        dniSugerencias.hidden = false;
-        return;
-    }
-
-    coincidenciasPorDni.forEach((visita, dni) => {
-        const opcion = document.createElement('button');
-        opcion.type = 'button';
-        opcion.className = 'dni-suggestion-option';
-        opcion.textContent = `${visita.datosPersonales} (DNI: ${dni})`;
-        opcion.addEventListener('click', () => {
-            datosPersonalesInput.value = visita.datosPersonales;
-            dniBusquedaInput.value = dni;
-            dniSugerencias.hidden = true;
-            empresaInput.focus();
-        });
-        dniSugerencias.appendChild(opcion);
-    });
+    const estado = document.createElement('div');
+    estado.className = 'dni-suggestion-empty';
+    estado.textContent = 'Buscando en MOVIMIENTOS…';
+    dniSugerencias.appendChild(estado);
     dniSugerencias.hidden = false;
+
+    try {
+        const response = await fetch(`/api/visitantes?dni=${encodeURIComponent(consulta)}`);
+        const visitantes = await response.json();
+        if (idConsulta !== consultaDniActual) return;
+        if (!response.ok || !Array.isArray(visitantes)) {
+            throw new Error(visitantes.message || 'No se pudo consultar la hoja MOVIMIENTOS.');
+        }
+
+        const coincidenciasPorDni = new Map();
+        visitantes.forEach((visitante) => {
+            const datosPersonales = visitante.datosPersonales || visitante['DATOS PERSONALES'] || '';
+            const dni = String(visitante.dni || extraerDni(datosPersonales)).replace(/\D/g, '');
+            if (datosPersonales && dni.includes(consulta) && !coincidenciasPorDni.has(dni)) {
+                coincidenciasPorDni.set(dni, { datosPersonales, dni });
+            }
+        });
+
+        dniSugerencias.replaceChildren();
+        if (!coincidenciasPorDni.size) {
+            estado.textContent = 'No hay visitantes registrados con ese DNI en MOVIMIENTOS.';
+            dniSugerencias.appendChild(estado);
+            return;
+        }
+
+        coincidenciasPorDni.forEach((visitante) => {
+            const opcion = document.createElement('button');
+            opcion.type = 'button';
+            opcion.className = 'dni-suggestion-option';
+            opcion.textContent = `${visitante.datosPersonales} (DNI: ${visitante.dni})`;
+            opcion.addEventListener('click', () => {
+                datosPersonalesInput.value = visitante.datosPersonales;
+                dniBusquedaInput.value = visitante.dni;
+                dniSugerencias.hidden = true;
+                empresaInput.focus();
+            });
+            dniSugerencias.appendChild(opcion);
+        });
+    } catch (error) {
+        if (idConsulta !== consultaDniActual) return;
+        console.error('Error al buscar visitantes por DNI en MOVIMIENTOS:', error);
+        dniSugerencias.replaceChildren();
+        estado.textContent = error.message || 'No se pudo buscar en MOVIMIENTOS.';
+        dniSugerencias.appendChild(estado);
+    }
 }
 
 if (dniBusquedaInput) {
@@ -937,9 +958,16 @@ if (btnRegistrar) {
                 signal: controladorEnvio.signal
             });
 
-            const resultado = await respuesta.json().catch(() => ({}));
+            const textoRespuesta = await respuesta.text();
+            let resultado;
+            try {
+                resultado = textoRespuesta ? JSON.parse(textoRespuesta) : {};
+            } catch (errorParseo) {
+                const detalle = textoRespuesta.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 180);
+                throw new Error(`El servidor respondió con un formato inesperado (HTTP ${respuesta.status})${detalle ? `: ${detalle}` : '.'}`);
+            }
             if (!respuesta.ok || resultado.success === false || resultado.status === 'error') {
-                throw new Error(resultado.message || 'No se pudo guardar el registro');
+                throw new Error(resultado.message || `El servidor rechazó el registro (HTTP ${respuesta.status}).`);
             }
 
             const visitaCreada = crearVisitaDesdeRegistro(datosObj);
